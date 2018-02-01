@@ -11,6 +11,7 @@
 import stringparser
 
 from .common import logger
+from .parse_constructors import Binary
 
 
 def to_bytes(val):
@@ -187,6 +188,8 @@ class Component(object):
         if query in getters:
             name, response = getters[query]
             logger.debug('Found response in getter of %s' % name)
+            if isinstance(response, Binary):
+                return response
             response = response.format(self._properties[name].get_value())
             return response.encode('utf-8')
 

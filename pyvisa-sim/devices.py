@@ -13,6 +13,7 @@ from pyvisa import constants, rname
 
 from .common import logger
 from .component import to_bytes, Component, NoResponse
+from .parse_constructors import Binary
 
 
 class StatusRegister(object):
@@ -241,10 +242,15 @@ class Device(Component):
 
                 if response is None:
                     response = self.error_response('command_error')
-
-                if response is not NoResponse:
+                if isinstance(response, Binary):
+                    self._output_buffer.extend(response.to_bin())
+                    self._output_buffer.extend(eom)
+                elif response is not NoResponse:
                     self._output_buffer.extend(response)
                     self._output_buffer.extend(eom)
+
+        except Exception as e:
+            raise e
 
         finally:
             self._input_buffer = bytearray()

@@ -20,6 +20,7 @@ import yaml
 from .component import NoResponse
 from .devices import Devices, Device
 from .channels import Channels
+from .parse_constructors import Binary
 
 
 def _ver_to_tuple(ver):
@@ -83,7 +84,7 @@ def _load(content_or_fp):
     """YAML Parse a file or str and check version.
     """
     try:
-        data = yaml.load(content_or_fp, Loader=yaml.loader.BaseLoader)
+        data = yaml.load(content_or_fp)
     except Exception as e:
         raise type(e)('Malformed yaml file:\n%r' % format_exc())
 
