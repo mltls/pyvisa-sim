@@ -13,6 +13,10 @@ import os
 from io import open, StringIO
 from contextlib import closing
 from traceback import format_exc
+import time
+import json
+import socket
+import sys
 
 import pkg_resources
 import yaml
@@ -268,17 +272,82 @@ class Loader(object):
         return data['devices'][device]
 
 
-def get_devices(filename, bundled):
+def get_data():
+    def get_constants(prefix):
+        """Create a dictionary mapping socket module
+        constants to their names.
+        """
+        return {
+            getattr(socket, n): n
+            for n in dir(socket)
+            if n.startswith(prefix)
+        }
+
+
+    families = get_constants('AF_')
+    types = get_constants('SOCK_')
+    protocols = get_constants('IPPROTO_')
+
+    # Create a TCP/IP socket
+    sock = socket.create_connection(('localhost', 10000))
+
+    print('Family  :', families[sock.family])
+    print('Type    :', types[sock.type])
+    print('Protocol:', protocols[sock.proto])
+    print()
+    string = b''
+    try:
+
+        # Send data
+        message = b'close'
+        print('sending {!r}'.format(message))
+        sock.sendall(message)
+        amount_received = 0
+        amount_expected = len(message)
+
+        for i in range(1000):
+            data = sock.recv(16)
+            string = string + data
+            amount_received += len(data)
+            print('received {!r}'.format(data))
+
+    finally:
+        print('closing socket')
+        sock.close()
+    string = string.decode('utf-8')
+    print('%r' % string)
+    js = json.loads(string)
+    return js
+
+
+
+def get_constants(prefix):
+    """Create a dictionary mapping socket module
+    constants to their names.
+    """
+    return {
+        getattr(socket, n): n
+        for n in dir(socket)
+        if n.startswith(prefix)
+    }
+
+
+def get_devices(filename, bundled, loader='default'):
     """Get a Devices object from a file.
 
     :param filename: full path of the file to parse or name of the resource.
     :param is_resource: boolean indicating if it is a resource.
     :rtype: Devices
     """
+    if loader == 'default':
+        loader = Loader(filename, bundled)
+        data = loader.data
+    elif loader == 'custom':
 
-    loader = Loader(filename, bundled)
-
-    data = loader.data
+        data = get_data()
+        print('****************%s' % data)
+    else:
+        data = None
 
     devices = Devices()
 
@@ -288,10 +357,13 @@ def get_devices(filename, bundled):
     for resource_name, resource_dict in data.get('resources', {}).items():
         device_name = resource_dict['device']
 
-        dd = loader.get_device_dict(device_name,
-                                    resource_dict.get('filename', None),
-                                    resource_dict.get('bundled', False),
-                                    SPEC_VERSION_TUPLE[0])
+        if loader == 'default':
+            dd = loader.get_device_dict(device_name,
+                                        resource_dict.get('filename', None),
+                                        resource_dict.get('bundled', False),
+                                        SPEC_VERSION_TUPLE[0])
+        elif loader == 'custom':
+            dd = data['devices'][device_name]
 
         devices.add_device(resource_name,
                            get_device(device_name, dd, loader, resource_dict))

@@ -13,6 +13,7 @@ from __future__ import division, unicode_literals, print_function, absolute_impo
 
 import random
 from traceback import format_exc
+import logging
 
 from pyvisa import constants, highlevel, rname
 import pyvisa.errors as errors
@@ -24,6 +25,8 @@ from . import sessions
 # This import is required to register subclasses
 from . import gpib, serial, tcpip, usb
 
+
+logging.basicConfig(level=logging.DEBUG)
 
 class SimVisaLibrary(highlevel.VisaLibraryBase):
     """A pure Python backend for PyVISA.
@@ -57,12 +60,14 @@ class SimVisaLibrary(highlevel.VisaLibraryBase):
         #: map session handle to session object.
         #: dict[int, SessionSim]
         self.sessions = {}
-
+        logging.debug("_init %s" % self.library_path)
         try:
             if self.library_path == 'unset':
-                self.devices = parser.get_devices('default.yaml', True)
+                self.devices = parser.get_devices('default.yaml', True, loader='default')
+            elif self.library_path == 'custom-backend':
+                self.devices = parser.get_devices('default.yaml', False, loader='custom')
             else:
-                self.devices = parser.get_devices(self.library_path, False)
+                self.devices = parser.get_devices(self.library_path, False, loader='default')
         except Exception as e:
             msg = 'Could not parse definitions file. %r'
             raise type(e)(msg % format_exc())

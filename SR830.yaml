@@ -1,0 +1,70 @@
+spec: "1.1"
+devices:
+  SR830:
+    eom:
+      GPIB INSTR:
+        q: "\r\n"
+        r: "\n"
+    error: ERROR
+    dialogues:
+      - q: "*IDN?"
+        r: "QCoDeS, Standford Research 830 simulation, 1337, 0.0.01"
+
+    properties:
+
+      isrc:
+        default: '0'
+        getter:
+          q: 'ISRC?'
+          r: '0'
+        setter:
+          q: 'ISRC {}'
+          r: OK
+
+      change display channel 1:
+        getter:
+          q: 'DDEF ? 1'
+          r: '0, 0'
+        setter:
+          q: 'DDEF 1, 0, 0'
+          r: OK
+
+      change display channel 2:
+        getter:
+          q: 'DDEF ? 2'
+          r: '0, 0'
+        setter:
+          q: 'DDEF 2, 0, 0'
+          r: OK
+
+      buffer setup:
+        getter:
+          q: 'SRAT ?'
+          r: '13'
+        setter:
+          q: 'SRAT 13'
+          r: OK
+
+      reset:
+        setter:
+          q: 'REST'
+          r: OK
+
+      start:
+        setter:
+          q: 'STRT'
+          r: OK
+
+      pause:
+        setter:
+          q: 'PAUS'
+          r: OK
+
+      number of stored points:
+        getter:
+          q: 'SPTS ?'
+          r: '1000'
+
+resources:
+  GPIB::1::INSTR:
+    device: SR830
