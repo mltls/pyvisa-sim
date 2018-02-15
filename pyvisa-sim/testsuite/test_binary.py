@@ -6,7 +6,7 @@ import visa
 PACKAGE = os.path.dirname(__file__)
 
 
-class TestChannels(BaseTestCase):
+class TestBinary(BaseTestCase):
 
     @classmethod
     def setUpClass(cls):

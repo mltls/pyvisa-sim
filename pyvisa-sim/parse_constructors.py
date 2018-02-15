@@ -16,4 +16,4 @@ class Binary(yaml.YAMLObject):
 
     def to_bin(self):
         logging.debug('to_bin called')
-        return bytes(self.binary, 'ascii')
+        return bytes(self.binary.encode('ascii'))
