@@ -20,7 +20,7 @@ devices:
         r: "LSG Serial #1234"
     properties:
       selected_channel:
-        default: 1
+        default: '1'
         getter:
           q: 'I?'
           r: '{}'
@@ -28,16 +28,16 @@ devices:
           q: 'I {}'
     channels:
       type1:
-        ids: [1, 2]
-        can_select: False
+        ids: ['1', '2']
+        can_select: 'False'
         properties:
           frequency:
             default: 1.0
             getter:
               q: 'F?'
-              r: '{:.3f}'
+              r: "{:.3f}"
             setter:
-              q: 'F {:.3f}'
+              q: "F {:.3f}"
             specs:
               type: float
               min: 1.0
@@ -62,8 +62,8 @@ devices:
         r: "SCPI,MOCK,VERSION_1.0"
     channels:
       channel:
-        ids: [1, 2, 3]
-        can_select: True
+        ids: ['1', '2', '3']
+        can_select: 'True'
         properties:
           voltage:
             default: 1.0
