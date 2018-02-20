@@ -1,0 +1,62 @@
+spec: "1.1"
+devices:
+  funcgen:
+    eom:
+      GPIB INSTR:
+        q: "\n"
+        r: "\n"
+    error: ERROR
+    dialogues:
+      - q: "*IDN?"
+        r: "mock funcgenerator"
+
+    properties:
+      offset:
+        default: 0.0
+        getter:
+          q: "OFS?"
+          r: "{}"
+        setter:
+          q: "OFS {}"
+          r: "OK"
+      amplitude:
+        default: 1.0
+        getter:
+          q: "AMP?"
+          r: "{}"
+        setter:
+          q: "AMP {}"
+          r: "OK"
+
+      min:
+        default: 1.0
+        getter:
+          q: "MIN?"
+          r: "{}"
+        setter:
+          q: "MIN {}"
+          r: "OK"
+      max:
+        default: -1.0
+        getter:
+          q: "MAX?"
+          r: "{}"
+        setter:
+          q: "MAX {}"
+          r: "OK"
+
+    deps:
+      offset: min, max
+      amplitude: min, max
+      min: offset, amplitude
+      max: offset, amplitude
+
+    transforms:
+      offset: (min + max) / 2
+      amplitude: (max - min) / 2
+      min: offset - amplitude
+      max: offset + amplitude
+
+resources:
+  GPIB::1::INSTR:
+    device: funcgen

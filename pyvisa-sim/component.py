@@ -118,6 +118,12 @@ class Component(object):
         #: :type: list[(str, stringparser.Parser, bytes, bytes)]
         self._setters = []
 
+
+        #: Stores the dependecies between different parameters
+        self._deps = []
+        # Stores the transforms between different coupled params
+        self._trans = []
+
     def add_dialogue(self, query, response):
         """Add dialogue to device.
 
@@ -206,12 +212,55 @@ class Component(object):
             except ValueError:
                 continue
 
+            affected_vals = self.get_affected_vals(name)
+
             try:
                 self._properties[name].set_value(value)
+                for affected in affected_vals:
+                    deps = self.get_deps(affected)
+
+                    r = {}
+                    for i in deps:
+                        r[i] = self._properties[i].get_value()
+
+                    trans = self.get_trans(affected)
+
+                    for k, v in r.items():
+                        trans = trans.replace(k, str(v))
+
+                    val = eval(trans)
+
+                    self._properties[affected].set_value(val)
                 return response
             except ValueError:
                 if isinstance(error_response, bytes):
                     return error_response
                 return self.error_response('command_error')
 
+
+
+
         return None
+
+    def add_deps(self, variable, deps):
+        self._deps.append([variable, deps])
+
+    def get_deps(self, name):
+        for i, dep in self._deps:
+            if i == name:
+                return dep
+
+    def get_affected_vals(self, value):
+        res = []
+        for i, r in self._deps:
+            if value in r:
+                res.append(i)
+        return res
+
+    def add_trans(self, variable, trans):
+        self._trans.append([variable, trans])
+
+    def get_trans(self, variable):
+        for var, trans in self._trans:
+            if var == variable:
+                return trans

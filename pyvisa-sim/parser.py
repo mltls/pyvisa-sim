@@ -146,6 +146,16 @@ def update_component(name, comp, component_dict):
             msg = 'In device %s, malformed property %s\n%r'
             raise type(e)(msg % (name, prop_name, format_exc()))
 
+    for deps in component_dict.get('deps', {}).items():
+        d0, rest = clean_deps_line(deps)
+        comp.add_deps(d0, rest)
+    for trans in component_dict.get('transforms', {}).items():
+        comp.add_trans(trans[0], trans[1])
+def clean_deps_line(deps):
+    d0 = deps[0]
+    rest = deps[1].split(',')
+    clean_rest = [i.strip() for i in rest]
+    return d0, clean_rest
 
 def get_bases(definition_dict, loader):
     """Collect dependencies.
