@@ -13,6 +13,7 @@ import os
 from io import open, StringIO
 from contextlib import closing
 from traceback import format_exc
+import re
 
 import pkg_resources
 import yaml
@@ -133,7 +134,7 @@ def update_component(name, comp, component_dict):
         except Exception as e:
             msg = 'In device %s, malformed dialogue %s\n%r'
             raise Exception(msg % (name, dia, e))
-
+    prop_names = []
     for prop_name, prop_dict in component_dict.get('properties', {}).items():
         try:
             getter = (_get_pair(prop_dict['getter'])
@@ -142,20 +143,26 @@ def update_component(name, comp, component_dict):
                       if 'setter' in prop_dict else None)
             comp.add_property(prop_name, prop_dict.get('default', ''),
                               getter, setter, prop_dict.get('specs', {}))
+            prop_names.append(prop_name)
         except Exception as e:
             msg = 'In device %s, malformed property %s\n%r'
             raise type(e)(msg % (name, prop_name, format_exc()))
 
-    for deps in component_dict.get('deps', {}).items():
-        d0, rest = clean_deps_line(deps)
-        comp.add_deps(d0, rest)
-    for trans in component_dict.get('transforms', {}).items():
-        comp.add_trans(trans[0], trans[1])
-def clean_deps_line(deps):
-    d0 = deps[0]
-    rest = deps[1].split(',')
-    clean_rest = [i.strip() for i in rest]
-    return d0, clean_rest
+    for name, rest in component_dict.get('transforms', {}).items():
+        rlist = get_deps_from_str(prop_names, rest)
+        comp.add_deps(name, rlist)
+
+    for name, trans in component_dict.get('transforms', {}).items():
+        comp.add_trans(name, trans)
+
+
+def get_deps_from_str(prop_names, rest):
+    r = []
+    for pn in prop_names:
+        if pn in rest:
+            r.append(pn)
+    return r
+
 
 def get_bases(definition_dict, loader):
     """Collect dependencies.

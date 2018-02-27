@@ -45,12 +45,6 @@ devices:
           q: "MAX {}"
           r: "OK"
 
-    deps:
-      offset: min, max
-      amplitude: min, max
-      min: offset, amplitude
-      max: offset, amplitude
-
     transforms:
       offset: (min + max) / 2
       amplitude: (max - min) / 2
